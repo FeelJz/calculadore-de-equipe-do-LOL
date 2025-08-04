@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Composições de Equipe LoL</title>
+    <style>
+        /* Estilos CSS fornecidos pelo usuário */
+        .app-container {
+            min-height: 100vh;
+            background-color: #36342F;
+            color: #E5E7EB;
+            font-family: sans-serif;
+            padding: 1rem;
+        }
+
+        .header-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #E0AF2B;
+            margin-bottom: 0.5rem;
+        }
+
+        .header-subtitle {
+            color: #475CA1;
+        }
+
+        .main-content {
+            max-width: 80rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .section-card {
+            background-color: #434A61;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #E0AF2B;
+        }
+
+        .champion-selection-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            justify-content: center;
+        }
+
+        .champion-card {
+            position: relative;
+            width: 5rem;
+            height: 5rem;
+        }
+
+        .champion-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
+
+        .champion-card img:hover {
+            border-color: #EF4444; /* red-500 */
+        }
+
+        .champion-card .champion-name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #FFFFFF;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.25rem;
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+        }
+
+        .champion-card:hover .champion-name-overlay {
+            opacity: 1;
+        }
+
+        .empty-slot {
+            width: 5rem;
+            height: 5rem;
+            background-color: #8B7949;
+            border-radius: 0.5rem;
+            border: 2px dashed #6B7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9CA3AF;
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stats-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #E0AF2B;
+        }
+
+        .suggested-compositions-button {
+            background-color: #2B56E0;
+            color: #FFFFFF;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+            border: none; /* Adicionado para remover a borda padrão do botão */
+        }
+
+        .suggested-compositions-button:hover {
+            background-color: #475CA1;
+        }
+
+        .radar-chart-container {
+            background-color: #36342F;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 300px; /* Definir uma altura para o container do SVG */
+        }
+
+        .champion-pick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 0.5rem;
+        }
+
+        @media (min-width: 640px) { /* sm */
+            .champion-pick-grid {
+                grid-template-columns: repeat(8, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 768px) { /* md */
+            .champion-pick-grid {
+                grid-template-columns: repeat(10, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1024px) { /* lg */
+            .champion-pick-grid {
+                grid-template-columns: repeat(12, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1280px) { /* xl */
+            .champion-pick-grid {
+                grid-template-columns: repeat(15, minmax(0, 1fr));
+            }
+        }
+
+        .champion-pick-card {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .champion-pick-card.selected {
+            opacity: 0.5;
+            pointer-events: none; /* Desabilita clique em campeões já selecionados */
+        }
+
+        .champion-pick-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .champion-pick-card img:hover {
+            box-shadow: 0 0 0 2px #E0AF2B; /* hover:ring-2 hover:ring-[#E0AF2B] */
+        }
+
+        .champion-pick-card .champion-name-overlay {
+            position: absolute;
+            bottom: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.75);
+            color: #FFFFFF;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px; /* rounded-full */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            white-space: nowrap;
+        }
+
+        .champion-pick-card:hover .champion-name-overlay {
+            opacity: 1;
+        }
+
+        .composition-drawer {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            width: 20rem; /* w-80 */
+            background-color: #434A61;
+            padding: 1.5rem;
+            box-shadow: -10px 0 15px -3px rgba(0, 0, 0, 0.1), -4px 0 6px -2px rgba(0, 0, 0, 0.05);
+            transform: translateX(100%); /* Initial state, hidden */
+            transition: transform 0.3s ease-in-out;
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        .composition-drawer.open {
+            transform: translateX(0);
+        }
+
+        .drawer-close-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            color: #FFFFFF;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .drawer-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #E0AF2B;
+        }
+
+        .example-composition-card {
+            background-color: #36342F;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .example-composition-card h4 {
+            font-weight: 600;
+            font-size: 1.125rem;
+            color: #2B56E0;
+        }
+
+        .example-composition-card p {
+            font-size: 0.875rem;
+            color: #9CA3AF;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-composition-champions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .example-composition-champions img {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 9999px; /* rounded-full */
+            border: 2px solid #E0AF2B;
+        }
+
+        .load-composition-button {
+            margin-top: 0.5rem;
+            background-color: #2B56E0;
+            color: #FFFFFF;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+            border: none; /* Adicionado para remover a borda padrão do botão */
+        }
+
+        .load-composition-button:hover {
+            background-color: #475CA1;
+        }
+
+        /* Static Content Sections */
+        .static-section-card {
+            background-color: #434A61;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+        }
+
+        .static-section-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #E0AF2B;
+            margin-bottom: 1.5rem;
+        }
+
+        .static-section-description {
+            color: #D1D5DB;
+            margin-bottom: 1rem;
+        }
+
+        .static-subsection-card {
+            background-color: #36342F;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .static-subsection-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .static-subsection-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2B56E0;
+            margin-bottom: 1rem;
+        }
+
+        .static-list {
+            list-style: none; /* Remove default list style */
+            padding: 0;
+            margin: 0;
+        }
+
+        .static-list li {
+            background-color: #36342F;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem; /* space-y-4 */
+            color: #D1D5DB;
+        }
+
+        .static-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .static-description-content {
+            color: #D1D5DB;
+        }
+
+        .static-example-text {
+            margin-top: 0.5rem;
+            color: #9CA3AF;
+            font-size: 0.875rem;
+        }
+
+        .static-scenario-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) { /* md */
+            .static-scenario-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .static-scenario-card {
+            background-color: #36342F;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .static-scenario-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2B56E0;
+            margin-bottom: 0.5rem;
+        }
+
+        .static-scenario-description {
+            color: #D1D5DB;
+            font-size: 0.875rem;
+        }
+
+        .static-regional-meta-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) { /* lg */
+            .static-regional-meta-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .static-regional-meta-card {
+            background-color: #36342F;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .static-regional-meta-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2B56E0;
+            margin-bottom: 0.5rem;
+        }
+
+        .static-regional-meta-description {
+            color: #D1D5DB;
+        }
+
+        .static-regional-meta-picks {
+            margin-top: 0.5rem;
+            color: #9CA3AF;
+            font-size: 0.875rem;
+        }
+
+        .static-pb-analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) { /* md */
+            .static-pb-analysis-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) { /* lg */
+            .static-pb-analysis-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .static-pb-analysis-card {
+            background-color: #434A61;
+            border: 1px solid #2B56E0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .static-pb-analysis-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2B56E0;
+            margin-bottom: 0.5rem;
+        }
+
+        .static-pb-analysis-description {
+            font-size: 0.875rem;
+            color: #D1D5DB;
+        }
+
+        .static-gameplay-styles-container {
+            margin-top: 1.5rem;
+        }
+
+        .static-gameplay-style-card {
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            background-color: #36342F;
+            margin-bottom: 1.5rem;
+        }
+
+        .static-gameplay-style-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .static-gameplay-style-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2B56E0;
+            margin-bottom: 0.5rem;
+        }
+
+        .static-gameplay-style-description {
+            color: #D1D5DB;
+        }
+
+        .static-gameplay-style-list {
+            list-style-type: disc;
+            list-style-position: inside;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #9CA3AF;
+        }
+
+        .static-gameplay-style-list li {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-root" class="app-container">
+        <header class="header-container">
+            <h1 class="header-title">Composições de Equipe</h1>
+            <p class="header-subtitle">Análise Estratégica para o League of Legends</p>
+        </header>
+
+        <main class="main-content">
+            <div class="section-card">
+                <h2 class="section-title">Monte sua Composição</h2>
+                <div id="champion-selection-grid" class="champion-selection-grid">
+                    <!-- Campeões selecionados serão renderizados aqui pelo JavaScript -->
+                </div>
+
+                <div class="stats-header">
+                    <h3 class="stats-title">Estatísticas da Composição</h3>
+                    <button id="toggle-composition-drawer" class="suggested-compositions-button">
+                        Composições Sugeridas
+                    </button>
+                </div>
+                <div id="radar-chart-container" class="radar-chart-container" style="display: none;">
+                    <!-- O gráfico de radar será renderizado aqui pelo JavaScript -->
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h2 class="section-title">Picks de Campeões</h2>
+                <p class="mb-4">Clique nos campeões para adicionar à sua composição.</p>
+                <div id="champion-pick-grid" class="champion-pick-grid">
+                    <!-- Todos os campeões serão renderizados aqui pelo JavaScript -->
+                </div>
+            </div>
+
+            <div id="composition-drawer" class="composition-drawer">
+                <button id="drawer-close-button" class="drawer-close-button">
+                    &times;
+                </button>
+                <h3 class="drawer-title">Composições Sugeridas</h3>
+                <div id="example-compositions-container">
+                    <!-- Composições de exemplo serão renderizadas aqui pelo JavaScript -->
+                </div>
+            </div>
+
+            <!-- Seções de Conteúdo Estático -->
+            <div id="static-content-container">
+                <!-- Conteúdo estático será renderizado aqui pelo JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Versão do DDragon para as imagens dos campeões
+        const DDragonVersion = '14.12.1';
+
+        // Mapeamento de campeões para suas imagens na API DDragon
+        const CHAMPION_IMAGES = {
+            'Aatrox': 'Aatrox.png', 'Ahri': 'Ahri.png', 'Akali': 'Akali.png', 'Aphelios': 'Aphelios.png',
+            'Ashe': 'Ashe.png', 'Azir': 'Azir.png', 'Bard': 'Bard.png', 'Braum': 'Braum.png',
+            'Caitlyn': 'Caitlyn.png', 'Cassiopeia': 'Cassiopeia.png', 'Darius': 'Darius.png', 'Diana': 'Diana.png',
+            'Draven': 'Draven.png', 'Ekko': 'Ekko.png', 'Elise': 'Elise.png', 'Evelynn': 'Evelynn.png',
+            'Ezreal': 'Ezreal.png', 'Fiora': 'Fiora.png', 'Galio': 'Galio.png', 'Gangplank': 'Gangplank.png',
+            'Garen': 'Garen.png', 'Gragas': 'Gragas.png', 'Graves': 'Graves.png', 'Hecarim': 'Hecarim.png',
+            'Heimerdinger': 'Heimerdinger.png', 'Irelia': 'Irelia.png', 'Janna': 'Janna.png', 'Jarvan IV': 'JarvanIV.png',
+            'Jax': 'Jax.png', 'Jayce': 'Jayce.png', 'Jhin': 'Jhin.png', 'Jinx': 'Jinx.png',
+            'Kai\'Sa': 'Kaisa.png', 'Kalista': 'Kalista.png', 'Karthus': 'Karthus.png', 'Kassadin': 'Kassadin.png',
+            'Katarina': 'Katarina.png', 'Kayle': 'Kayle.png', 'Kennen': 'Kennen.png', 'Kha\'Zix': 'Khazix.png',
+            'Kindred': 'Kindred.png', 'Kog\'Maw': 'KogMaw.png', 'Leblanc': 'Leblanc.png', 'Lee Sin': 'LeeSin.png',
+            'Leona': 'Leona.png', 'Lillia': 'Lillia.png', 'Lucian': 'Lucian.png', 'Lulu': 'Lulu.png',
+            'Lux': 'Lux.png', 'Malphite': 'Malphite.png', 'Maokai': 'Maokai.png', 'Master Yi': 'MasterYi.png',
+            'Miss Fortune': 'MissFortune.png', 'Mordekaiser': 'Mordekaiser.png', 'Morgana': 'Morgana.png', 'Nami': 'Nami.png',
+            'Nasus': 'Nasus.png', 'Nautilus': 'Nautilus.png', 'Nidalee': 'Nidalee.png', 'Nocturne': 'Nocturne.png',
+            'Nunu & Willump': 'Nunu.png', 'Olaf': 'Olaf.png', 'Orianna': 'Orianna.png', 'Ornn': 'Ornn.png',
+            'Pantheon': 'Pantheon.png', 'Pyke': 'Pyke.png', 'Qiyana': 'Qiyana.png', 'Quinn': 'Quinn.png',
+            'Rakan': 'Rakan.png', 'Rammus': 'Rammus.png', 'Renekton': 'Renekton.png', 'Rengar': 'Rengar.png',
+            'Ryze': 'Ryze.png', 'Samira': 'Samira.png', 'Sejuani': 'Sejuani.png', 'Senna': 'Senna.png',
+            'Seraphine': 'Seraphine.png',
+            'Shaco': 'Shaco.png', 'Shen': 'Shen.png', 'Shyvana': 'Shyvana.png',
+            'Singed': 'Singed.png', 'Sivir': 'Sivir.png', 'Sona': 'Sona.png', 'Soraka': 'Soraka.png',
+            'Swain': 'Swain.png', 'Sylas': 'Sylas.png', 'Syndra': 'Syndra.png', 'Tahm Kench': 'TahmKench.png',
+            'Talon': 'Talon.png', 'Taric': 'Taric.png', 'Teemo': 'Teemo.png', 'Thresh': 'Thresh.png',
+            'Tristana': 'Tristana.png', 'Trundle': 'Trundle.png', 'Tryndamere': 'Tryndamere.png', 'Twisted Fate': 'TwistedFate.png',
+            'Twitch': 'Twitch.png', 'Udyr': 'Udyr.png', 'Urgot': 'Urgot.png', 'Varus': 'Varus.png',
+            'Vayne': 'Vayne.png', 'Veigar': 'Veigar.png', 'Vel\'Koz': 'Velkoz.png', 'Vi': 'Vi.png',
+            'Viego': 'Viego.png', 'Viktor': 'Viktor.png', 'Vladimir': 'Vladimir.png', 'Volibear': 'Volibear.png',
+            'Warwick': 'Warwick.png', 'Wukong': 'Wukong.png', 'Xayah': 'Xayah.png', 'Xerath': 'Xerath.png',
+            'Xin Zhao': 'XinZhao.png', 'Yasuo': 'Yasuo.png', 'Yone': 'Yone.png',
+            'Yorick': 'Yorick.png', 'Yuumi': 'Yuumi.png',
+            'Zac': 'Zac.png', 'Zed': 'Zed.png', 'Ziggs': 'Ziggs.png', 'Zilean': 'Zilean.png',
+            'Zoe': 'Zoe.png', 'Zyra': 'Zyra.png',
+            'Sett': 'Sett.png',
+        };
+
+        // Estatísticas iniciais para o gráfico de radar
+        const initialStats = {
+            'Dano Físico': 0,
+            'Dano Mágico': 0,
+            'Dano Verdadeiro': 0,
+            'Sustentação': 0,
+            'Controle de Grupo': 0,
+            'Mobilidade': 0,
+            'Resistência Física': 0,
+            'Resistência Mágica': 0,
+            'Utilidade': 0,
+        };
+
+        // Dados para composições de exemplo
+        const exampleCompositions = [
+            {
+                name: 'Poke e Cerco',
+                description: 'Compilado com campeões que possuem habilidades de longo alcance, ideais para desgastar o time inimigo antes de uma luta. Ex: Ezreal, Varus, Jayce, Ziggs.',
+                champions: ['Ezreal', 'Jayce', 'Ziggs'],
+            },
+            {
+                name: 'Luta em Equipe',
+                description: 'Focado em campeões com alto dano em área e habilidades que permitem forçar confrontos diretos. Ex: Malphite, Orianna, Jarvan IV.',
+                champions: ['Malphite', 'Orianna', 'Jarvan IV'],
+            },
+            {
+                name: 'Pick-off',
+                description: 'Estrutura para isolar e eliminar alvos prioritários, como atiradores ou magos, usando campeões com alto potencial de engage e dano explosivo. Ex: Leona, Nocturne, Zed, Elise.',
+                champions: ['Leona', 'Nocturne', 'Zed'],
+            },
+            {
+                name: 'Split Push',
+                description: 'Composição que utiliza campeões com forte poder de duelo e capacidade de derrubar torres rapidamente, para pressionar diferentes rotas do mapa simultaneamente. Ex: Tryndamere, Fiora, Jax.',
+                champions: ['Tryndamere', 'Fiora', 'Jax'],
+            },
+            {
+                name: 'Early Game',
+                description: 'Ideal para equipes que preferem ganhar vantagem nas rotas e pressionar o mapa desde o início do jogo, antes que o inimigo consiga escalar. Ex: Lee Sin, Renekton, Draven, Lucian.',
+                champions: ['Lee Sin', 'Renekton', 'Draven'],
+            },
+        ];
+
+        // Dados consolidados para as seções de conteúdo estático
+        const staticContent = [
+            {
+                title: "Guia Completo de P&B (Pick e Ban)",
+                description: "A fase de P&B é crucial. Entender as diferentes abordagens pode te dar uma vantagem enorme antes mesmo do jogo começar.",
+                subsections: [
+                    {
+                        subtitle: "Estratégias de P&B",
+                        type: "list",
+                        items: [
+                            "Bans de Power Pick: Remove campeões que são fortes em quase qualquer composição ou que podem desequilibrar o jogo sozinhos. Ex: Zeri, Sejuani.",
+                            "Bans de Counter: Bane campeões que são fortes contra a estratégia que você planeja executar. Ex: Banir Braum se sua composição é focada em habilidades de projétil.",
+                            "Bans direcionados ao jogador: Foca em banir os melhores campeões de um jogador específico do time adversário, forçando-o a sair de sua zona de conforto.",
+                            "First Pick: Prioriza pegar um campeão \"OP\" ou extremamente versátil.",
+                            "Counter Pick: Espera o adversário escolher um campeão e responde com um que tem vantagem natural.",
+                        ]
+                    },
+                    {
+                        subtitle: "Picks de Campeões",
+                        type: "list",
+                        items: [
+                            "Blind Picks (First Picks): Escolher um campeão versátil que não tenha muitos counters fortes. Ex: Renekton, Ornn.",
+                            "Counter Picks (Last Picks): Guardar uma escolha para a última rodada para pegar um campeão que anule a escolha do seu oponente. Ex: Pegar Kassadin contra uma composição mágica.",
+                        ]
+                    },
+                    {
+                        subtitle: "Guia Rápido de P&B",
+                        type: "list",
+                        items: [
+                            "1. Bans: Meta, tático, específico do jogador.",
+                            "2. Picks: Blind, counter, sinergia.",
+                            "3. Counter-Picks: Use as últimas escolhas para pegar campeões que têm vantagem direta contra as escolhas inimigas.",
+                        ]
+                    },
+                    {
+                        subtitle: "Exemplos Práticos de P&B",
+                        type: "scenarios",
+                        scenarios: [
+                            {
+                                name: "Cenário 1: Teamfight Sinergia",
+                                description: "Seu Time: Quer jogar com uma composição de teamfight.",
+                                details: [
+                                    "Bans: Banir campeões que conseguem iniciar lutas rapidamente antes que sua equipe esteja agrupada (ex: Nocturne, Hecarim) ou campeões que anulam a ult do seu carry (ex: Tahm Kench).",
+                                    "Picks: Começar com um campeão versátil como Ornn ou Sejuani e depois garantir um carry de teamfight como Orianna ou Miss Fortune.",
+                                ]
+                            },
+                            {
+                                name: "Cenário 2: Early Game Aggression",
+                                description: "Seu Time: Quer dominar o early game.",
+                                details: [
+                                    "Bans: Banir campeões que escalam muito bem e podem ser difíceis de parar no late game (ex: Vayne, Kassadin) e campeões que podem proteger a equipe adversária (ex: Janna, Lulu).",
+                                    "Picks: Começar com picks agressivos como Renekton e Lee Sin para pressionar as lanes desde o início.",
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Tipos de Composições de Equipe",
+                description: "As composições de equipe podem ser categorizadas com base em seu principal objetivo e estilo de jogo.",
+                subsections: [
+                    {
+                        subtitle: "Composição de Poke",
+                        type: "description",
+                        content: "Focada em causar dano de longe antes de iniciar uma luta ou cercar um objetivo, forçando o inimigo a recuar. Ex: Varus, Jayce, Ziggs.",
+                        examples: ["Ezreal", "Ziggs", "Xerath"],
+                        winCondition: "Desgastar os inimigos a ponto de eles não conseguirem contestar objetivos.",
+                    },
+                    {
+                        subtitle: "Composição de Teamfight (Luta em Equipe)",
+                        type: "description",
+                        content: "Projetadas para vencer lutas em equipe com dano em área e controle de grupo massivo. O objetivo é agrupar e forçar confrontos para eliminar o time inimigo.",
+                        examples: ["Malphite", "Orianna", "Jarvan IV", "Miss Fortune"],
+                        winCondition: "Agrupar e iniciar lutas em locais estratégicos do mapa, usando a sinergia de habilidades para aniquilar o time inimigo.",
+                    },
+                    {
+                        subtitle: "Composição de Pick-off",
+                        type: "description",
+                        content: "Busca por abates isolados no mapa usando campeões com alto potencial de burst e controle de grupo. Ex: Leona, Nocturne, Zed.",
+                        examples: ["Leona", "Nocturne", "Zed"],
+                        winCondition: "Composição focada em eliminar alvos isolados no mapa para conseguir vantagens.",
+                    },
+                    {
+                        subtitle: "Composição de Split Push",
+                        type: "description",
+                        content: "Composição que utiliza campeões com forte poder de duelo e capacidade de derrubar torres rapidamente, para pressionar diferentes rotas do mapa simultaneamente. Ex: Tryndamere, Fiora, Jax.",
+                        examples: ["Tryndamere", "Fiora", "Jax"],
+                        winCondition: "Focada em criar pressão em duas rotas ao mesmo tempo, usando um ou mais campeões com forte capacidade de duelo e derrubada de torres.",
+                    },
+                    {
+                        subtitle: "Composição de Escalamento",
+                        type: "description",
+                        content: "Composição que é mais fraca no início e muito forte no final. O objetivo é sobreviver à fase de rotas e farmar. Ex: Kayle, Vayne, Kassadin.",
+                        examples: ["Kayle", "Vayne", "Kassadin"],
+                        winCondition: "Composição que é mais fraca no início e muito forte no final. O objetivo é sobreviver à fase de rotas e farmar.",
+                    },
+                    {
+                        subtitle: "Early Game e Snowball",
+                        type: "description",
+                        content: "Condição de Vitória: Dominar as rotas, conseguir abates e objetivos iniciais para ter uma vantagem de ouro e experiência tão grande que o inimigo não consiga se recuperar.",
+                    },
+                    {
+                        subtitle: "Late Game e Escalonamento",
+                        type: "description",
+                        content: "Condição de Vitória: Sobreviver ao early game, farmar de forma segura e fazer as escolhas corretas de itens para se tornar uma potência imparável no final.",
+                    },
+                    {
+                        subtitle: "Pick-off e Duelo",
+                        type: "description",
+                        content: "Condição de Vitória: Usar campeões com alto potencial de pick-off para pegar inimigos fora de posição, abrindo espaço para objetivos.",
+                    },
+                ]
+            },
+            {
+                title: "Estilos de Jogo e Metas Regionais",
+                description: "O meta de jogo e as estratégias de P&B podem variar significativamente entre as regiões, refletindo a cultura de jogo de cada uma.",
+                subsections: [
+                    {
+                        subtitle: "Estilos Típicos",
+                        type: "list",
+                        items: [
+                            "Early Game (Agressivo): Foco em campeões fortes no início do jogo para snowball e fechar a partida rapidamente. Ex: Lee Sin, Draven, Renekton.",
+                            "Mid-Game (Balanceado): Composições que são sólidas em todas as fases, mas se destacam em teamfights no meio do jogo. Ex: Orianna, Jax, Sejuani.",
+                            "Late Game (Escalonamento): Estratégias que visam farmar e sobreviver no início para que os campeões se tornem potências imparáveis no final. Ex: Vayne, Kassadin, Kayle.",
+                        ]
+                    },
+                    {
+                        subtitle: "Estilos Regionais em Destaque",
+                        type: "list",
+                        items: [
+                            "Coreia (LCK): Excelência técnica e macrogame. Foco na perfeição da execução e adaptação ao meta. Composições equilibradas com forte escalonamento.",
+                            "China (LPL): Estilo agressivo e imprevisível. Priorizam lutas constantes, picks de conforto e composições de alto dano para teamfights caóticas.",
+                            "Europa (LEC): Criatividade e inovação. Conhecidos por picks \"off-meta\" e estratégias surpreendentes no P&B para confundir oponentes.",
+                            "América do Norte (LCS): Tende a ter um estilo mais lento, focado em objetivos e menos lutas no início do jogo, com composições que escalam.",
+                        ]
+                    },
+                    {
+                        subtitle: "Exemplos de Metas Profissionais",
+                        type: "regionalMeta",
+                        regions: [
+                            {
+                                name: "LCK (Coreia)",
+                                description: "Estilo de jogo metódico e focado em controle de visão e objetivos. Composições que escalam bem e priorizam teamfights perfeitas no final do jogo.",
+                                picks: "Azir, Sejuani, Aphelios.",
+                            },
+                            {
+                                name: "LPL (China)",
+                                description: "Estilo de jogo agressivo e imprevisível. Priorizam lutas constantes e picks de conforto com alto potencial de dano, como Yasuo, Yone e Irelia.",
+                                picks: "Viego, Lee Sin, Kai'Sa.",
+                            },
+                            {
+                                name: "LEC (Europa)",
+                                description: "Conhecida por sua criatividade e picks flexíveis. Muitas vezes surpreendem com estratégias não-convencionais e early-game agressivo.",
+                                picks: "Rek'Sai, Rumble, Lucian.",
+                            },
+                        ]
+                    },
+                    {
+                        subtitle: "Aprendendo com os Profissionais",
+                        type: "pbAnalysis",
+                        analyses: [
+                            {
+                                name: "P&B da LCK",
+                                description: "Foco na perfeição. Eles raramente arriscam picks aleatórios e preferem composições bem equilibradas que escalam de forma consistente. A fase de P&B é uma partida de xadrez em si.",
+                            },
+                            {
+                                name: "P&B da LPL",
+                                description: "Muito mais volátil. Os times chineses frequentemente usam a fase de P&B para pegar campeões de alto dano e conforto para seus jogadores, mesmo que não estejam no meta.",
+                            },
+                            {
+                                name: "P&B da LEC",
+                                description: "Inovação é a palavra-chave. A LEC é famosa por suas composições únicas e picks \"surpresa\" que podem ditar um novo meta, como picks de jungler na rota do meio.",
+                            },
+                        ]
+                    },
+                ]
+            },
+            {
+                title: "Teoria e Prática da Composição de Equipe",
+                description: "A construção de uma boa equipe vai além de escolher os seus campeões favoritos. Envolve a sinergia entre eles e o planejamento da estratégia de jogo.",
+                subsections: [
+                    {
+                        subtitle: "Sinergia de Habilidades",
+                        type: "description",
+                        content: "Alguns campeões funcionam muito bem juntos. Por exemplo, a ultimate de Yasuo e a ultimate de Malphite. Esse tipo de sinergia pode virar uma luta em equipe.",
+                    },
+                    {
+                        subtitle: "Equilíbrio de Dano",
+                        type: "description",
+                        content: "Uma boa composição deve ter um equilíbrio entre dano físico e mágico. Se o seu time tem apenas dano físico, o inimigo pode simplesmente comprar armadura e você terá pouca chance de vencer as lutas.",
+                    },
+                    {
+                        subtitle: "Condição de Vitória",
+                        type: "description",
+                        content: "Antes do jogo começar, você deve saber como sua equipe planeja vencer. É por meio de lutas em equipe? Split push? Poke? Todos os jogadores devem estar na mesma página.",
+                    },
+                    {
+                        subtitle: "Estilos de Jogabilidade Profissional",
+                        type: "gameplayStyles",
+                        styles: [
+                            {
+                                name: "Teamfight Centric",
+                                description: "Essas equipes priorizam a capacidade de lutar em equipe. Suas composições são construídas para ter sinergia e dominar as lutas 5v5. Eles buscam objetivos como Dragões e Barões para forçar o inimigo a lutar.",
+                                examples: ["Malphite", "Orianna", "Miss Fortune"],
+                                winCondition: "Iniciar lutas favoráveis e executar combinações de habilidades em área.",
+                            },
+                            {
+                                name: "Split Push Focado",
+                                description: "O objetivo é exercer pressão em mais de uma rota ao mesmo tempo. Enquanto um ou dois campeões com forte capacidade de duelo e limpeza de ondas pressionam as rotas laterais, o restante do time cria pressão em outro ponto do mapa.",
+                                examples: ["Fiora", "Tryndamere", "Jax"],
+                                winCondition: "Forçar o inimigo a dividir suas forças, permitindo que os split pushers derrubem torres ou ganhem vantagens de mapa.",
+                            },
+                            {
+                                name: "Poke & Siege",
+                                description: "Essas composições têm campeões com habilidades de longo alcance para desgastar os inimigos de longe. Eles buscam cercar torres e objetivos, forçando o oponente a recuar ou lutar em desvantagem.",
+                                examples: ["Ezreal", "Varus", "Jayce", "Ziggs"],
+                                winCondition: "Desgastar o inimigo com habilidades de longo alcance e usar a vantagem para conquistar objetivos e torres sem ter que lutar diretamente.",
+                            },
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        let selectedChampions = [];
+        let stats = { ...initialStats };
+        let isCompositionDrawerOpen = false;
+
+        // Obtenção de referências aos elementos DOM
+        const championSelectionGrid = document.getElementById('champion-selection-grid');
+        const championPickGrid = document.getElementById('champion-pick-grid');
+        const radarChartContainer = document.getElementById('radar-chart-container');
+        const toggleCompositionDrawerButton = document.getElementById('toggle-composition-drawer');
+        const compositionDrawer = document.getElementById('composition-drawer');
+        const drawerCloseButton = document.getElementById('drawer-close-button');
+        const exampleCompositionsContainer = document.getElementById('example-compositions-container');
+        const staticContentContainer = document.getElementById('static-content-container');
+
+        // Função local para obter estatísticas dos campeões (já fornecida e funcional)
+        const getChampionStatsLocal = (championName) => {
+            const champStats = { ...initialStats };
+            switch (championName) {
+                case 'Aatrox':
+                    champStats['Dano Físico'] = 8;
+                    champStats['Sustentação'] = 9;
+                    champStats['Resistência Física'] = 7;
+                    champStats['Mobilidade'] = 4;
+                    break;
+                case 'Ahri':
+                    champStats['Dano Mágico'] = 9;
+                    champStats['Mobilidade'] = 7;
+                    champStats['Controle de Grupo'] = 5;
+                    champStats['Utilidade'] = 6;
+                    break;
+                case 'Leona':
+                    champStats['Controle de Grupo'] = 10;
+                    champStats['Resistência Física'] = 9;
+                    champStats['Resistência Mágica'] = 8;
+                    champStats['Utilidade'] = 7;
+                    break;
+                case 'Malphite':
+                    champStats['Controle de Grupo'] = 8;
+                    champStats['Resistência Física'] = 10;
+                    champStats['Resistência Mágica'] = 9;
+                    champStats['Dano Mágico'] = 4;
+                    break;
+                case 'Tryndamere':
+                    champStats['Dano Físico'] = 9;
+                    champStats['Mobilidade'] = 6;
+                    champStats['Sustentação'] = 8;
+                    champStats['Dano Verdadeiro'] = 7;
+                    break;
+                case 'Ezreal':
+                    champStats['Dano Físico'] = 7;
+                    champStats['Mobilidade'] = 8;
+                    champStats['Utilidade'] = 5;
+                    break;
+                case 'Ziggs':
+                    champStats['Dano Mágico'] = 9;
+                    champStats['Utilidade'] = 7;
+                    champStats['Controle de Grupo'] = 6;
+                    break;
+                case 'Orianna':
+                    champStats['Dano Mágico'] = 8;
+                    champStats['Controle de Grupo'] = 7;
+                    champStats['Utilidade'] = 9;
+                    break;
+                case 'Jarvan IV':
+                    champStats['Dano Físico'] = 7;
+                    champStats['Controle de Grupo'] = 8;
+                    champStats['Resistência Física'] = 7;
+                    champStats['Mobilidade'] = 6;
+                    break;
+                case 'Nocturne':
+                    champStats['Dano Físico'] = 8;
+                    champStats['Mobilidade'] = 9;
+                    champStats['Controle de Grupo'] = 4;
+                    break;
+                case 'Zed':
+                    champStats['Dano Físico'] = 9;
+                    champStats['Mobilidade'] = 9;
+                    champStats['Dano Verdadeiro'] = 5;
+                    break;
+                case 'Fiora':
+                    champStats['Dano Físico'] = 9;
+                    champStats['Sustentação'] = 7;
+                    champStats['Mobilidade'] = 7;
+                    champStats['Dano Verdadeiro'] = 8;
+                    break;
+                case 'Jax':
+                    champStats['Dano Físico'] = 8;
+                    champStats['Resistência Física'] = 7;
+                    champStats['Mobilidade'] = 6;
+                    champStats['Sustentação'] = 6;
+                    break;
+                case 'Lee Sin':
+                    champStats['Dano Físico'] = 8;
+                    champStats['Mobilidade'] = 9;
+                    champStats['Controle de Grupo'] = 6;
+                    break;
+                case 'Renekton':
+                    champStats['Dano Físico'] = 8;
+                    champStats['Resistência Física'] = 8;
+                    champStats['Sustentação'] = 7;
+                    break;
+                case 'Draven':
+                    champStats['Dano Físico'] = 9;
+                    champStats['Sustentação'] = 5;
+                    champStats['Mobilidade'] = 3;
+                    break;
+                case 'Lucian':
+                    champStats['Dano Físico'] = 8;
+                    champStats['Mobilidade'] = 7;
+                    champStats['Sustentação'] = 4;
+                    break;
+                case 'Wukong':
+                    champStats['Dano Físico'] = 7;
+                    champStats['Mobilidade'] = 6;
+                    champStats['Controle de Grupo'] = 7;
+                    champStats['Resistência Física'] = 6;
+                    break;
+                case 'Yuumi':
+                    champStats['Dano Mágico'] = 2;
+                    champStats['Sustentação'] = 9;
+                    champStats['Utilidade'] = 10;
+                    champStats['Controle de Grupo'] = 6;
+                    break;
+                case 'Senna':
+                    champStats['Dano Físico'] = 7;
+                    champStats['Sustentação'] = 6;
+                    champStats['Utilidade'] = 8;
+                    champStats['Dano Verdadeiro'] = 3;
+                    break;
+                case 'Sett':
+                    champStats['Dano Físico'] = 8;
+                    champStats['Resistência Física'] = 9;
+                    champStats['Controle de Grupo'] = 7;
+                    champStats['Sustentação'] = 5;
+                    break;
+                case 'Yone':
+                    champStats['Dano Físico'] = 9;
+                    champStats['Mobilidade'] = 8;
+                    champStats['Dano Verdadeiro'] = 6;
+                    champStats['Controle de Grupo'] = 5;
+                    break;
+                case 'Seraphine':
+                    champStats['Dano Mágico'] = 7;
+                    champStats['Utilidade'] = 9;
+                    champStats['Controle de Grupo'] = 8;
+                    champStats['Sustentação'] = 7;
+                    break;
+                default:
+                    // Valores padrão para campeões sem estatísticas específicas
+                    champStats['Dano Físico'] = 5;
+                    champStats['Dano Mágico'] = 5;
+                    champStats['Resistência Física'] = 5;
+                    champStats['Resistência Mágica'] = 5;
+                    champStats['Mobilidade'] = 5;
+                    champStats['Controle de Grupo'] = 5;
+                    champStats['Sustentação'] = 5;
+                    champStats['Utilidade'] = 5;
+                    champStats['Dano Verdadeiro'] = 0;
+                    break;
+            }
+            return champStats;
+        };
+
+        // Função para atualizar as estatísticas e renderizar o gráfico de radar
+        const updateStatsAndRenderRadar = () => {
+            const newStats = { ...initialStats };
+            // O valor máximo para cada estatística é 10 (hardcoded na função getChampionStatsLocal)
+            // Multiplicamos por 5 porque são 5 campeões na composição.
+            const maxStatValuePerChampion = 10;
+            const maxTotalStatValue = maxStatValuePerChampion * selectedChampions.length;
+
+            selectedChampions.forEach(championName => {
+                const champStats = getChampionStatsLocal(championName);
+                for (const stat in newStats) {
+                    newStats[stat] += champStats[stat];
+                }
+            });
+
+            const normalizedStats = {};
+            for (const stat in newStats) {
+                // Normaliza as estatísticas para uma escala de 0 a 100
+                normalizedStats[stat] = maxTotalStatValue > 0 ? (newStats[stat] / maxTotalStatValue) * 100 : 0;
+            }
+            stats = normalizedStats; // Atualiza a variável global de estatísticas
+
+            renderRadarChart();
+        };
+
+        // Função para desenhar o gráfico de radar SVG personalizado
+        const renderRadarChart = () => {
+            radarChartContainer.innerHTML = ''; // Limpa o conteúdo anterior
+
+            if (selectedChampions.length === 0) {
+                radarChartContainer.style.display = 'none'; // Esconde o gráfico se não houver campeões
+                return;
+            } else {
+                radarChartContainer.style.display = 'flex'; // Mostra o gráfico
+            }
+
+            const width = 300;
+            const height = 300;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(width, height) / 2 * 0.7; // Raio do gráfico
+
+            const statsData = Object.keys(stats).map(key => ({
+                stat: key,
+                value: stats[key],
+                fullMark: 100, // O valor máximo para normalização é 100
+            }));
+
+            const numAxes = statsData.length;
+            const angleSlice = (Math.PI * 2) / numAxes; // Ângulo para cada eixo
+
+            // Função auxiliar para calcular as coordenadas de um ponto no radar
+            const getPointCoordinate = (value, index, max) => {
+                const angle = angleSlice * index - Math.PI / 2; // -PI/2 para começar no topo
+                const x = centerX + (value / max) * radius * Math.cos(angle);
+                const y = centerY + (value / max) * radius * Math.sin(angle);
+                return `${x},${y}`;
+            };
+
+            // Cria o elemento SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+            // Círculos da grade polar (para visualização dos níveis)
+            [0.25, 0.5, 0.75, 1].forEach((scale) => {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', centerX);
+                circle.setAttribute('cy', centerY);
+                circle.setAttribute('r', radius * scale);
+                circle.setAttribute('stroke', '#64667E'); // Cor da linha da grade
+                circle.setAttribute('fill', 'none');
+                circle.setAttribute('stroke-width', '1');
+                svg.appendChild(circle);
+            });
+
+            // Linhas dos eixos (partindo do centro)
+            statsData.forEach((d, i) => {
+                const endPoint = getPointCoordinate(d.fullMark, i, d.fullMark);
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', centerX);
+                line.setAttribute('y1', centerY);
+                line.setAttribute('x2', parseFloat(endPoint.split(',')[0]));
+                line.setAttribute('y2', parseFloat(endPoint.split(',')[1]));
+                line.setAttribute('stroke', '#64667E'); // Cor da linha do eixo
+                line.setAttribute('stroke-width', '1');
+                svg.appendChild(line);
+            });
+
+            // Área do radar (polígono que representa as estatísticas da composição)
+            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+            const polygonPoints = statsData.map((d, i) => getPointCoordinate(d.value, i, d.fullMark)).join(' ');
+            polygon.setAttribute('points', polygonPoints);
+            polygon.setAttribute('fill', '#2B56E0'); // Cor de preenchimento do polígono
+            polygon.setAttribute('fill-opacity', '0.6'); // Opacidade
+            polygon.setAttribute('stroke', '#2B56E0'); // Cor da borda
+            polygon.setAttribute('stroke-width', '2');
+            svg.appendChild(polygon);
+
+            // Rótulos dos eixos (nomes das estatísticas)
+            statsData.forEach((d, i) => {
+                const angle = angleSlice * i - Math.PI / 2;
+                // Ajusta a posição do texto para que ele não sobreponha as linhas
+                const textX = centerX + (radius + 20) * Math.cos(angle);
+                const textY = centerY + (radius + 20) * Math.sin(angle);
+                // Ajusta o alinhamento do texto para que ele fique centralizado ou alinhado corretamente
+                const textAnchor = Math.abs(Math.cos(angle)) < 0.001 ? 'middle' : (Math.cos(angle) > 0 ? 'start' : 'end');
+                const dominantBaseline = Math.abs(Math.sin(angle)) < 0.001 ? 'middle' : (Math.sin(angle) > 0 ? 'hanging' : 'auto');
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', textX);
+                text.setAttribute('y', textY);
+                text.setAttribute('fill', '#E0AF2B'); // Cor do texto
+                text.setAttribute('font-size', '12');
+                text.setAttribute('text-anchor', textAnchor);
+                text.setAttribute('dominant-baseline', dominantBaseline);
+                text.textContent = d.stat;
+                svg.appendChild(text);
+            });
+
+            radarChartContainer.appendChild(svg);
+        };
+
+        // Função para renderizar os campeões selecionados na grade superior
+        const renderSelectedChampions = () => {
+            championSelectionGrid.innerHTML = ''; // Limpa a grade atual
+            selectedChampions.forEach(championName => {
+                const div = document.createElement('div');
+                div.className = 'champion-card';
+                div.innerHTML = `
+                    <img src="http://ddragon.leagueoflegends.com/cdn/${DDragonVersion}/img/champion/${CHAMPION_IMAGES[championName]}" alt="${championName}" class="champion-image">
+                    <span class="champion-name-overlay">${championName}</span>
+                `;
+                // Adiciona um evento de clique para remover o campeão
+                div.querySelector('img').addEventListener('click', () => handleRemoveChampion(championName));
+                championSelectionGrid.appendChild(div);
+            });
+
+            // Renderiza slots vazios para completar os 5 espaços
+            for (let i = 0; i < (5 - selectedChampions.length); i++) {
+                const div = document.createElement('div');
+                div.className = 'empty-slot';
+                div.textContent = 'Vazio';
+                championSelectionGrid.appendChild(div);
+            }
+            updateStatsAndRenderRadar(); // Atualiza o gráfico de radar após renderizar
+        };
+
+        // Função para renderizar todos os campeões disponíveis para seleção
+        const renderAllChampions = () => {
+            championPickGrid.innerHTML = ''; // Limpa a grade atual
+            Object.keys(CHAMPION_IMAGES).forEach(championName => {
+                const div = document.createElement('div');
+                // Adiciona a classe 'selected' se o campeão já estiver na composição
+                div.className = `champion-pick-card ${selectedChampions.includes(championName) ? 'selected' : ''}`;
+                div.innerHTML = `
+                    <img src="http://ddragon.leagueoflegends.com/cdn/${DDragonVersion}/img/champion/${CHAMPION_IMAGES[championName]}" alt="${championName}" title="${championName}">
+                    <span class="champion-name-overlay">${championName}</span>
+                `;
+                // Adiciona um evento de clique para selecionar o campeão
+                div.addEventListener('click', () => handleSelectChampion(championName));
+                championPickGrid.appendChild(div);
+            });
+        };
+
+        // Função para renderizar as composições de exemplo na gaveta
+        const renderExampleCompositions = () => {
+            exampleCompositionsContainer.innerHTML = ''; // Limpa o conteúdo anterior
+            exampleCompositions.forEach((comp) => {
+                const div = document.createElement('div');
+                div.className = 'example-composition-card';
+                let championsHtml = comp.champions.map(championName => `
+                    <img src="http://ddragon.leagueoflegends.com/cdn/${DDragonVersion}/img/champion/${CHAMPION_IMAGES[championName]}" alt="${championName}" title="${championName}">
+                `).join('');
+                div.innerHTML = `
+                    <h4>${comp.name}</h4>
+                    <p>${comp.description}</p>
+                    <div class="example-composition-champions">
+                        ${championsHtml}
+                    </div>
+                    <button class="load-composition-button" data-champions='${encodeURIComponent(JSON.stringify(comp.champions))}'>
+                        Carregar Composição
+                    </button>
+                `;
+                // Adiciona evento de clique para carregar a composição
+                div.querySelector('.load-composition-button').addEventListener('click', (event) => {
+                    const champs = JSON.parse(decodeURIComponent(event.target.dataset.champions));
+                    handleSelectComposition(champs);
+                });
+                exampleCompositionsContainer.appendChild(div);
+            });
+        };
+
+        // Função para renderizar o conteúdo estático na parte inferior da página
+        const renderStaticContent = () => {
+            staticContentContainer.innerHTML = ''; // Limpa o conteúdo anterior
+            staticContent.forEach((section) => {
+                const sectionElement = document.createElement('section');
+                sectionElement.className = 'static-section-card';
+                let contentHtml = `
+                    <div class="max-w-7xl mx-auto">
+                        <h2 class="static-section-title">${section.title}</h2>
+                        ${section.description ? `<p class="static-section-description">${section.description}</p>` : ''}
+                `;
+
+                if (section.subsections) {
+                    section.subsections.forEach((subsection) => {
+                        contentHtml += `
+                            <div class="static-subsection-card">
+                                <h3 class="static-subsection-title">${subsection.subtitle}</h3>
+                        `;
+                        if (subsection.type === "list") {
+                            contentHtml += `<ul class="static-list">`;
+                            subsection.items.forEach(item => {
+                                contentHtml += `<li>${item}</li>`;
+                            });
+                            contentHtml += `</ul>`;
+                        } else if (subsection.type === "description") {
+                            contentHtml += `<p class="static-description-content">${subsection.content}</p>`;
+                            if (subsection.examples && subsection.examples.length > 0) {
+                                contentHtml += `<p class="static-example-text">Exemplo de Campeões: ${subsection.examples.join(', ')}.</p>`;
+                            }
+                            if (subsection.winCondition) {
+                                contentHtml += `<p class="static-example-text">Condição de Vitória: ${subsection.winCondition}</p>`;
+                            }
+                        } else if (subsection.type === "scenarios") {
+                            contentHtml += `<div class="static-scenario-grid">`;
+                            subsection.scenarios.forEach(scenario => {
+                                contentHtml += `
+                                    <div class="static-scenario-card">
+                                        <h4 class="static-scenario-title">${scenario.name}</h4>
+                                        <p class="static-scenario-description">${scenario.description}</p>
+                                `;
+                                if (scenario.details) {
+                                    scenario.details.forEach(detail => {
+                                        contentHtml += `<p class="static-scenario-description">${detail}</p>`;
+                                    });
+                                }
+                                contentHtml += `</div>`;
+                            });
+                            contentHtml += `</div>`;
+                        } else if (subsection.type === "regionalMeta") {
+                            contentHtml += `<div class="static-regional-meta-grid">`;
+                            subsection.regions.forEach(region => {
+                                contentHtml += `
+                                    <div class="static-regional-meta-card">
+                                        <h3 class="static-regional-meta-title">${region.name}</h3>
+                                        <p class="static-regional-meta-description">${region.description}</p>
+                                `;
+                                if (region.picks) {
+                                    contentHtml += `<p class="static-regional-meta-picks">Picks Comuns: ${region.picks}</p>`;
+                                }
+                                contentHtml += `</div>`;
+                            });
+                            contentHtml += `</div>`;
+                        } else if (subsection.type === "pbAnalysis") {
+                            contentHtml += `<div class="static-pb-analysis-grid">`;
+                            subsection.analyses.forEach(analysis => {
+                                contentHtml += `
+                                    <div class="static-pb-analysis-card">
+                                        <h3 class="static-pb-analysis-title">${analysis.name}</h3>
+                                        <p class="static-pb-analysis-description">${analysis.description}</p>
+                                    </div>
+                                `;
+                            });
+                            contentHtml += `</div>`;
+                        } else if (subsection.type === "gameplayStyles") {
+                            contentHtml += `<div class="static-gameplay-styles-container">`;
+                            subsection.styles.forEach(style => {
+                                contentHtml += `
+                                    <div class="static-gameplay-style-card">
+                                        <h3 class="static-gameplay-style-title">${style.name}</h3>
+                                        <p class="static-gameplay-style-description">${style.description}</p>
+                                `;
+                                if (style.examples) {
+                                    contentHtml += `<ul class="static-gameplay-style-list"><li>Campeões de Exemplo: ${style.examples.join(', ')}</li></ul>`;
+                                }
+                                if (style.winCondition) {
+                                    contentHtml += `<ul class="static-gameplay-style-list"><li>Condição de Vitória: ${style.winCondition}</li></ul>`;
+                                }
+                                contentHtml += `</div>`;
+                            });
+                            contentHtml += `</div>`;
+                        }
+                        contentHtml += `</div>`; // Fecha static-subsection-card
+                    });
+                }
+                contentHtml += `</div>`; // Fecha max-w-7xl mx-auto
+                sectionElement.innerHTML = contentHtml;
+                staticContentContainer.appendChild(sectionElement);
+            });
+        };
+
+        // Manipuladores de Eventos
+
+        // Adiciona um campeão à composição selecionada
+        const handleSelectChampion = (championName) => {
+            // Verifica se há menos de 5 campeões e se o campeão não está duplicado
+            if (selectedChampions.length < 5 && !selectedChampions.includes(championName)) {
+                selectedChampions = [...selectedChampions, championName];
+                renderSelectedChampions(); // Atualiza a grade de selecionados
+                renderAllChampions(); // Atualiza o estado de seleção na grade de picks
+            }
+        };
+
+        // Remove um campeão da composição selecionada
+        const handleRemoveChampion = (championName) => {
+            selectedChampions = selectedChampions.filter(champ => champ !== championName);
+            renderSelectedChampions(); // Atualiza a grade de selecionados
+            renderAllChampions(); // Atualiza o estado de seleção na grade de picks
+        };
+
+        // Carrega uma composição sugerida
+        const handleSelectComposition = (champions) => {
+            selectedChampions = champions;
+            isCompositionDrawerOpen = false; // Fecha a gaveta
+            compositionDrawer.classList.remove('open');
+            renderSelectedChampions(); // Atualiza a grade de selecionados
+            renderAllChampions(); // Atualiza o estado de seleção na grade de picks
+        };
+
+        // Alterna a visibilidade da gaveta de composições
+        const toggleCompositionDrawer = () => {
+            isCompositionDrawerOpen = !isCompositionDrawerOpen;
+            if (isCompositionDrawerOpen) {
+                compositionDrawer.classList.add('open');
+            } else {
+                compositionDrawer.classList.remove('open');
+            }
+        };
+
+        // Fecha a gaveta se o clique for fora dela ou do botão de alternar
+        const handleClickOutside = (event) => {
+            if (!compositionDrawer.contains(event.target) && !toggleCompositionDrawerButton.contains(event.target)) {
+                isCompositionDrawerOpen = false;
+                compositionDrawer.classList.remove('open');
+            }
+        };
+
+        // Renderização inicial ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSelectedChampions();
+            renderAllChampions();
+            renderExampleCompositions();
+            renderStaticContent();
+
+            // Adiciona os event listeners aos botões e ao documento
+            toggleCompositionDrawerButton.addEventListener('click', toggleCompositionDrawer);
+            drawerCloseButton.addEventListener('click', toggleCompositionDrawer);
+            document.addEventListener('click', handleClickOutside);
+        });
+    </script>
+</body>
+</html>
